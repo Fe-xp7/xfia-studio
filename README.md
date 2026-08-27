@@ -9,6 +9,7 @@ Painel administrativo para cadastrar oportunidades, organizar templates, analisa
 - Login JWT, senha com bcrypt, limitação de tentativas e proteção de todas as APIs administrativas.
 - CRUD REST de empresas e templates, com validação, paginação e erros padronizados.
 - Dashboard responsivo, sidebar, métricas iniciais e empresas recomendadas.
+- Identidade visual escura inspirada em interfaces premium, com painéis translúcidos, detalhes violeta, gráfico operacional e acessos rápidos.
 - Telas de login, listagem/cadastro/edição/exclusão de empresas e biblioteca de templates.
 - Estados de carregamento, erro e ausência de dados.
 - Serviço de IA desacoplado, com provedor mock e adaptador HTTP configurável.
