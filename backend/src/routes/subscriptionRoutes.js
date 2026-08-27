@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import * as controller from '../controllers/subscriptionController.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { validate } from '../middlewares/validate.js';
+import { subscriptionSchema } from '../validators/schemas.js';
+export const subscriptionRoutes=Router();
+subscriptionRoutes.get('/',asyncHandler(controller.listSubscriptions));
+subscriptionRoutes.post('/',validate(subscriptionSchema),asyncHandler(controller.createSubscription));
+subscriptionRoutes.put('/:id',validate(subscriptionSchema),asyncHandler(controller.updateSubscription));
+subscriptionRoutes.delete('/:id',asyncHandler(controller.deleteSubscription));

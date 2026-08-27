@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import * as controller from '../controllers/clientController.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { validate } from '../middlewares/validate.js';
+import { clientSchema } from '../validators/schemas.js';
+export const clientRoutes=Router();
+clientRoutes.get('/',asyncHandler(controller.listClients));
+clientRoutes.post('/',validate(clientSchema),asyncHandler(controller.createClient));
+clientRoutes.put('/:id',validate(clientSchema),asyncHandler(controller.updateClient));
+clientRoutes.delete('/:id',asyncHandler(controller.deleteClient));

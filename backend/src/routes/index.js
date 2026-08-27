@@ -1,0 +1,26 @@
+import { Router } from 'express';
+import { authRoutes } from './authRoutes.js';
+import { companyRoutes } from './companyRoutes.js';
+import { templateRoutes } from './templateRoutes.js';
+import { authenticate } from '../middlewares/auth.js';
+import { getDashboard } from '../controllers/dashboardController.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { siteRoutes } from './siteRoutes.js';
+import { getPublicPreview } from '../controllers/siteController.js';
+import { uploadRoutes } from './uploadRoutes.js';
+import { clientRoutes } from './clientRoutes.js';
+import { subscriptionRoutes } from './subscriptionRoutes.js';
+import { settingsRoutes } from './settingsRoutes.js';
+
+export const apiRoutes = Router();
+apiRoutes.use('/auth', authRoutes);
+apiRoutes.get('/preview/:slug', asyncHandler(getPublicPreview));
+apiRoutes.use(authenticate);
+apiRoutes.get('/dashboard', asyncHandler(getDashboard));
+apiRoutes.use('/companies', companyRoutes);
+apiRoutes.use('/templates', templateRoutes);
+apiRoutes.use('/sites', siteRoutes);
+apiRoutes.use('/uploads', uploadRoutes);
+apiRoutes.use('/clients', clientRoutes);
+apiRoutes.use('/subscriptions', subscriptionRoutes);
+apiRoutes.use('/settings', settingsRoutes);

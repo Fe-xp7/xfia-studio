@@ -1,0 +1,2 @@
+import { Construction } from 'lucide-react';
+export function ComingSoonPage({title,stage}){return <div className="page"><div className="page-heading"><div><span className="eyebrow">Planejado para a Etapa {stage}</span><h1>{title}</h1></div></div><section className="panel coming-soon"><Construction/><h2>Módulo preparado no menu</h2><p>Este recurso faz parte das próximas etapas do projeto e ainda não foi implementado, conforme o escopo solicitado.</p></section></div>}
