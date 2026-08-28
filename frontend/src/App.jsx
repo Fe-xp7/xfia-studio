@@ -16,11 +16,16 @@ import { ClientsPage } from './pages/ClientsPage.jsx';
 import { SubscriptionsPage } from './pages/SubscriptionsPage.jsx';
 import { SettingsPage } from './pages/SettingsPage.jsx';
 import { SettingsProvider } from './contexts/SettingsContext.jsx';
+import { PublicSiteGeneratorPage } from './pages/PublicSiteGeneratorPage.jsx';
+import { getTenantHostname } from './services/api.js';
 
 export default function App() {
+  const tenantHostname=getTenantHostname();
+  if(tenantHostname)return <BrowserRouter><Routes><Route path="*" element={<PublicPreviewPage hostname={tenantHostname}/>}/></Routes></BrowserRouter>;
   return <BrowserRouter><AuthProvider><SettingsProvider><Routes>
     <Route path="/login" element={<LoginPage/>}/>
     <Route path="/preview/:slug" element={<PublicPreviewPage/>}/>
+    <Route path="/criar-site" element={<PublicSiteGeneratorPage/>}/>
     <Route element={<ProtectedRoute/>}><Route element={<AdminLayout/>}>
       <Route index element={<DashboardPage/>}/>
       <Route path="empresas" element={<CompaniesPage/>}/>

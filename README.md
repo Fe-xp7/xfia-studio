@@ -18,7 +18,8 @@ Painel administrativo para cadastrar oportunidades, organizar templates, analisa
 - Catálogo inicial idempotente com templates para barbearia, restaurante, oficina, loja e clínica.
 - Listagem de sites, editor visual em três painéis, ordenação/visibilidade de seções e preview responsivo ao vivo.
 - Rota pública `/preview/:slug`, sem elementos do painel administrativo.
-- `DeploymentService` desacoplado com provedor local, status de publicação e link copiável.
+- Formulário público self-service em `/criar-site`, com até 5 fotos opcionais, geração persistida como job e polling de status.
+- Publicação multi-tenant em Worker único, subdomínio reservado por site e link de produção copiável.
 - Clientes vinculados às empresas, valores de criação/manutenção e status contratual.
 - Controle administrativo de mensalidades, vencimentos, atrasos e baixas manuais.
 - Dashboard financeiro com receita recorrente, receita de criação e pendências.
@@ -81,13 +82,22 @@ npm run dev
 - `GET|PUT|DELETE /api/sites/:id`
 - `POST /api/sites/:id/deploy`
 - `GET /api/preview/:slug` (pública)
+- `GET /api/public/sites/resolve?hostname=...` (pública, somente site publicado ou suspenso)
+- `POST /api/public/sites/generate` (pública, limitada por IP)
+- `GET /api/public/jobs/:token` (pública, consultada pelo formulário)
+- `POST|GET /api/public/orders` (checkout público e consulta de pedido)
+- `POST /api/webhooks/asaas` (webhook idempotente de billing)
 - `GET|POST /api/clients`
 - `PUT|DELETE /api/clients/:id`
 - `GET|POST /api/subscriptions`
 - `PUT|DELETE /api/subscriptions/:id`
 - `GET|PUT /api/settings`
 
-Exceto o login e o health check, as rotas exigem `Authorization: Bearer <token>`.
+Exceto login, health check, preview e geração self-service, as rotas exigem `Authorization: Bearer <token>`.
+
+### Billing
+
+O padrão `BILLING_PROVIDER=mock` permite validar pedido, pagamento, webhook e publicação sem movimentar dinheiro. Para conectar o Sandbox Asaas, configure `BILLING_PROVIDER=asaas`, `ASAAS_API_KEY` e um `ASAAS_WEBHOOK_TOKEN` aleatório com pelo menos 32 caracteres. A cobrança inicial e a assinatura mensal são jornadas separadas para não misturar valores diferentes no mesmo checkout.
 
 ### Configuração da IA
 
@@ -108,9 +118,11 @@ Ao iniciar a API, os cinco templates iniciais são inseridos sem duplicar regist
 
 O upload aceita até 10 imagens JPG, PNG ou WebP por envio, com limite de 5 MB por arquivo. Em desenvolvimento, `STORAGE_PROVIDER=local` mantém os arquivos em `backend/uploads`. Em produção gratuita, `STORAGE_PROVIDER=cloudinary` envia as imagens ao Cloudinary para que sobrevivam aos reinícios da API.
 
-### Publicação de demonstração
+### Publicação multi-tenant
 
-Por padrão, `DEPLOYMENT_PROVIDER=local` publica a demonstração na própria aplicação e gera uma URL baseada em `PUBLIC_SITE_URL`. Esse modo é ideal para desenvolvimento, mas o link `localhost` funciona somente no computador local. A interface `DeploymentService` permite adicionar posteriormente um provedor externo sem alterar o fluxo do painel.
+`DEPLOYMENT_PROVIDER=multitenant` publica o site como estado persistido, sem criar um deploy por cliente. Cada site recebe `https://<slug>.sites.xfiatech.com`; um único Cloudflare Worker serve o frontend e o hostname resolve o conteúdo na API. Em desenvolvimento, `DEPLOYMENT_PROVIDER=local` usa o mesmo contrato com `<slug>.localhost:5173`. O preview `/preview/:slug` continua separado e pode exibir rascunhos.
+
+O JSON público usa `Cache-Control: no-store`; HTML é revalidado e arquivos JS/CSS com hash podem permanecer imutáveis. Cada republicação incrementa `publication.version`, preparando cache versionado futuro sem risco de misturar tenants.
 
 ### Clientes e mensalidades
 
@@ -129,4 +141,4 @@ Nunca versione os arquivos `.env` ou credenciais reais.
 
 ## Produção
 
-O repositório inclui configuração para Cloudflare Pages, Render Free, MongoDB Atlas M0 e Cloudinary Free. Consulte [DEPLOY.md](./DEPLOY.md) para o processo completo, variáveis necessárias e checklist de validação.
+O repositório inclui configuração para Cloudflare Workers, Render, MongoDB Atlas e Cloudinary. Consulte [DEPLOY.md](./DEPLOY.md) para o processo completo, variáveis necessárias e checklist de validação.

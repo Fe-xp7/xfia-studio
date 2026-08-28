@@ -1,0 +1,1 @@
+import { Router } from 'express';import { receiveAsaasWebhook } from '../controllers/billingWebhookController.js';import { asyncHandler } from '../utils/asyncHandler.js';export const billingWebhookRoutes=Router();billingWebhookRoutes.post('/asaas',asyncHandler(receiveAsaasWebhook));

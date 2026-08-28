@@ -37,9 +37,13 @@ services:
       - key: AI_MODEL
         sync: false
       - key: DEPLOYMENT_PROVIDER
-        value: local
+        value: multitenant
       - key: PUBLIC_SITE_URL
         sync: false
+      - key: PUBLIC_SITE_BASE_DOMAIN
+        value: sites.xfiatech.com
+      - key: PUBLIC_SITE_SCHEME
+        value: https
       - key: DEFAULT_CREATION_FEE
         value: "500"
       - key: DEFAULT_MONTHLY_FEE

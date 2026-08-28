@@ -1,117 +1,83 @@
-# Publicação gratuita
+# Publicação multi-tenant da XFia Tech
 
-Arquitetura utilizada:
+Arquitetura fixa desta versão:
 
-- **Frontend e sites públicos:** Cloudflare Pages Free
-- **API:** Render Free
-- **Banco:** MongoDB Atlas M0 Free
-- **Imagens:** Cloudinary Free
-- **Runtime:** Node.js 20+
+- **Sites públicos:** um Cloudflare Worker com Static Assets
+- **Roteamento:** uma Route `*.sites.xfiatech.com/*`
+- **API:** Render
+- **Banco:** MongoDB Atlas
+- **Imagens:** Cloudinary
 
-É possível publicar sem domínio próprio usando o endereço gratuito `*.pages.dev`. Nenhuma credencial real deve ser adicionada ao projeto.
+Não é usado Cloudflare Pages, Workers for Platforms ou um Worker por cliente.
 
-## 1. Colocar o projeto no GitHub
+## 1. API no Render
 
-Crie um repositório privado e envie o projeto. Cloudflare Pages e Render farão os deploys a partir dele. Antes do envio, confirme que os arquivos `backend/.env` e `frontend/.env` não estão incluídos.
+O `render.yaml` configura o provedor multi-tenant. Preencha as credenciais solicitadas e confirme:
 
-## 2. Criar o MongoDB Atlas gratuito
-
-1. Crie uma conta e escolha o cluster **M0 Free**.
-2. Crie um usuário exclusivo para esta aplicação.
-3. Em **Network Access**, permita o acesso necessário para o Render.
-4. Copie a connection string, informando usuário, senha e o banco `site-factory`.
-5. Guarde o valor para `MONGODB_URI`.
-
-Exemplo estrutural, sem credenciais reais:
-
-```text
-mongodb+srv://USUARIO:SENHA@cluster.example.mongodb.net/site-factory
+```env
+CLIENT_URLS=https://app.xfiatech.com
+PUBLIC_SITE_URL=https://app.xfiatech.com
+PUBLIC_SITE_BASE_DOMAIN=sites.xfiatech.com
+PUBLIC_SITE_SCHEME=https
+DEPLOYMENT_PROVIDER=multitenant
 ```
 
-## 3. Criar o Cloudinary gratuito
+`CLIENT_URLS` contém as origens exatas do painel. A API também autoriza, via CORS, origens HTTPS abaixo de `*.sites.xfiatech.com`.
 
-Na tela de credenciais do Cloudinary, copie o **Cloud name**, a **API key** e o **API secret**. Esses valores ficarão somente nas variáveis protegidas do Render. Com `STORAGE_PROVIDER=cloudinary`, imagens novas permanecem disponíveis mesmo quando o Render reinicia.
+## 2. Frontend público
 
-## 4. Publicar a API no Render Free
-
-1. Escolha **New > Blueprint** no Render.
-2. Conecte o repositório e selecione o `render.yaml` existente.
-3. Preencha as variáveis solicitadas:
-
-| Variável | Valor |
-| --- | --- |
-| `MONGODB_URI` | Connection string do Atlas |
-| `ADMIN_NAME` | Nome do administrador |
-| `ADMIN_EMAIL` | E-mail de login |
-| `ADMIN_PASSWORD` | Senha inicial forte |
-| `CLIENT_URLS` | Preencha depois de criar o Pages |
-| `PUBLIC_SITE_URL` | Preencha depois de criar o Pages |
-| `CLOUDINARY_CLOUD_NAME` | Cloud name do Cloudinary |
-| `CLOUDINARY_API_KEY` | API key do Cloudinary |
-| `CLOUDINARY_API_SECRET` | API secret do Cloudinary |
-
-O plano gratuito pode adormecer após um período sem acessos. O primeiro acesso seguinte pode demorar enquanto a API inicia.
-
-Confirme que `https://SEU-SERVICO.onrender.com/health` responde:
-
-```json
-{"status":"ok"}
-```
-
-## 5. Publicar o frontend no Cloudflare Pages
-
-1. Abra **Workers & Pages > Create > Pages > Connect to Git**.
-2. Selecione o repositório.
-3. Configure:
-
-| Campo | Valor |
-| --- | --- |
-| Root directory | `frontend` |
-| Framework preset | `Vite` |
-| Build command | `npm run build` |
-| Build output directory | `dist` |
-| Node version | `20` |
-
-4. Cadastre a variável de build:
+Configure no build:
 
 ```env
 VITE_API_URL=https://SEU-SERVICO.onrender.com/api
+VITE_PUBLIC_SITE_BASE_DOMAIN=sites.xfiatech.com
+VITE_ENABLE_CUSTOM_DOMAINS=false
 ```
 
-5. Publique e copie o endereço `https://SEU-PROJETO.pages.dev`.
+Autentique o Wrangler e publique a partir da raiz:
 
-O arquivo `frontend/public/_redirects` permite atualizar diretamente rotas como `/sites/:id` e `/preview/:slug`.
+```bash
+npm install
+npm --prefix frontend run worker:deploy
+```
 
-## 6. Conectar frontend e API
+O arquivo `frontend/wrangler.jsonc` declara um único Worker, os assets compilados, fallback SPA e a Route wildcard.
 
-No Render, defina:
+## 3. DNS curinga
+
+Mantenha `xfiatech.com` como zona no Cloudflare. Crie um registro DNS proxied para `*.sites` e associe a Route `*.sites.xfiatech.com/*` ao Worker `xfia-sites`. Registros DNS mais específicos têm precedência e podem ser usados para reservar hosts operacionais.
+
+## 4. Cache
+
+- JSON de resolução e preview: `no-store`.
+- HTML do Worker: `max-age=0, must-revalidate`.
+- Assets Vite com hash: cache da plataforma, sem conteúdo de cliente embutido.
+- Imagens: URL do Cloudinary.
+
+Não há purga obrigatória no MVP porque o conteúdo mutável não é armazenado na borda. `publication.version` é incrementada em cada publicação para permitir URLs imutáveis numa evolução posterior.
+
+## 5. Teste local de subdomínio
+
+Use um site já publicado e abra:
+
+```text
+http://slug-do-site.localhost:5173
+```
+
+Variáveis locais esperadas:
 
 ```env
-CLIENT_URLS=https://SEU-PROJETO.pages.dev
-PUBLIC_SITE_URL=https://SEU-PROJETO.pages.dev
+PUBLIC_SITE_BASE_DOMAIN=localhost:5173
+PUBLIC_SITE_SCHEME=http
+VITE_PUBLIC_SITE_BASE_DOMAIN=localhost
 ```
 
-Para aceitar produção e desenvolvimento local:
+## Checklist
 
-```env
-CLIENT_URLS=https://SEU-PROJETO.pages.dev,http://localhost:5173
-```
-
-Salve e aguarde o novo deploy da API.
-
-## 7. Checklist
-
-- O `/health` responde `200` no Render.
-- O login funciona no endereço `pages.dev`.
-- Uma empresa pode ser cadastrada.
-- Uma imagem continua abrindo depois de reiniciar a API.
-- O preview público abre em janela anônima.
-- O link publicado não contém `localhost`.
-- Nenhum `.env` ou segredo foi enviado ao GitHub.
-
-## Limites do plano gratuito
-
-- O Render pode adormecer e demorar no primeiro acesso.
-- Atlas, Cloudinary e Cloudflare possuem cotas gratuitas.
-- Não há alta disponibilidade real.
-- Um domínio próprio é opcional; o endereço `pages.dev` é gratuito.
+- A API `/health` responde `200`.
+- Publicar grava `publication.subdomain`, `publication.version` e `productionUrl`.
+- `GET /api/public/sites/resolve?hostname=<slug>.sites.xfiatech.com` encontra apenas sites publicados ou suspensos.
+- Rascunhos não são expostos pelo hostname.
+- Site suspenso mostra a página neutra da XFia Tech.
+- O JSON público responde com `Cache-Control: no-store`.
+- Nenhuma credencial ou arquivo `.env` foi versionado.

@@ -18,6 +18,18 @@ export function companySchema(body) {
   return errors;
 }
 
+export function publicGenerationSchema(body) {
+  const errors = [];
+  if (!isString(body.businessName) || body.businessName.trim().length < 2 || body.businessName.length > 120) errors.push('Nome do negócio deve ter entre 2 e 120 caracteres.');
+  if (!isString(body.segment) || body.segment.trim().length < 2 || body.segment.length > 80) errors.push('Área de atuação deve ter entre 2 e 80 caracteres.');
+  if (!isString(body.whatsapp) || body.whatsapp.replace(/\D/g, '').length < 10 || body.whatsapp.length > 30) errors.push('Informe um WhatsApp válido.');
+  if (body.description !== undefined && (!isString(body.description) || body.description.length > 1200)) errors.push('A descrição deve ter no máximo 1200 caracteres.');
+  if (body.instagram !== undefined && (!isString(body.instagram) || body.instagram.length > 200)) errors.push('Instagram inválido.');
+  return errors;
+}
+
+export function orderSchema(body){const errors=[];if(!isString(body.siteSlug)||body.siteSlug.length<2)errors.push('Site inválido.');if(!isString(body.name)||body.name.trim().length<2||body.name.length>120)errors.push('Nome inválido.');if(!isString(body.email)||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email))errors.push('E-mail inválido.');if(!isString(body.cpfCnpj)||![11,14].includes(body.cpfCnpj.replace(/\D/g,'').length))errors.push('CPF ou CNPJ inválido.');if(!isString(body.phone)||body.phone.replace(/\D/g,'').length<10)errors.push('Telefone inválido.');return errors;}
+
 export function templateSchema(body) {
   const errors = [];
   if (!isString(body.name) || body.name.trim().length < 2) errors.push('Nome é obrigatório.');

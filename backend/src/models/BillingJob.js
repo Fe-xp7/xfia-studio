@@ -1,0 +1,3 @@
+import mongoose from 'mongoose';
+const billingJobSchema=new mongoose.Schema({type:{type:String,enum:['process_webhook','publish_site','suspend_site','republish_site'],required:true},status:{type:String,enum:['pending','processing','done','failed'],default:'pending',index:true},orderId:{type:mongoose.Schema.Types.ObjectId,ref:'Order',default:null},siteId:{type:mongoose.Schema.Types.ObjectId,ref:'Site',default:null},webhookEventId:{type:mongoose.Schema.Types.ObjectId,ref:'WebhookEvent',default:null},attempts:{type:Number,default:0},errorMessage:{type:String,default:''},completedAt:{type:Date,default:null}},{timestamps:true});
+export const BillingJob=mongoose.model('BillingJob',billingJobSchema);

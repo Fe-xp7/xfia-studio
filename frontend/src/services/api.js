@@ -15,3 +15,11 @@ export async function api(path, options = {}) {
   if (!response.ok) throw new Error(data.message || 'Não foi possível concluir a operação.');
   return data;
 }
+
+export function getTenantHostname() {
+  const hostname = window.location.hostname.toLowerCase();
+  const configured = String(import.meta.env.VITE_PUBLIC_SITE_BASE_DOMAIN || 'localhost').split(':')[0].toLowerCase();
+  if (hostname === configured || hostname === `www.${configured}`) return '';
+  if (hostname.endsWith(`.${configured}`)) return hostname;
+  return import.meta.env.VITE_ENABLE_CUSTOM_DOMAINS === 'true' ? hostname : '';
+}

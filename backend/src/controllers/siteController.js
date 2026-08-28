@@ -4,6 +4,7 @@ import { Company } from '../models/Company.js';
 import { AppError } from '../utils/AppError.js';
 import { slugify } from '../utils/slugify.js';
 import { getDeploymentService } from '../services/deployment/index.js';
+import { env } from '../config/env.js';
 
 const allowed=['templateId','name','slug','content','theme','seo','status'];
 const clean=(body)=>Object.fromEntries(Object.entries(body).filter(([key])=>allowed.includes(key)));
@@ -28,8 +29,22 @@ export async function deleteSite(req,res){
   await Company.updateOne({_id:item.companyId},{$set:{status:'site-em-producao'}}); res.status(204).end();
 }
 export async function getPublicPreview(req,res){
+  res.set('Cache-Control','private, no-store');
   const item=await Site.findOne({slug:req.params.slug,status:{$ne:'arquivado'}}).populate('companyId','name segment city state').populate('templateId','name slug category sections');
   if(!item)throw new AppError('Demonstração não encontrada.',404); res.json(item);
+}
+
+export async function resolvePublicSite(req,res){
+  res.set('Cache-Control','no-store');
+  const hostname=String(req.query.hostname||'').trim().toLowerCase().replace(/\.$/,'').split(':')[0];
+  if(!hostname||hostname.length>253||!/^([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]*$/.test(hostname))throw new AppError('Hostname inválido.',400);
+  const baseDomain=env.publicSiteBaseDomain.split(':')[0];
+  const suffix=`.${baseDomain}`;
+  const subdomain=hostname.endsWith(suffix)?hostname.slice(0,-suffix.length):'';
+  const lookup=subdomain&&!subdomain.includes('.')?{'publication.subdomain':subdomain}:{domains:{$elemMatch:{hostname,status:'active'}}};
+  const item=await Site.findOne({...lookup,status:{$in:['publicado','suspenso']}}).populate('companyId','name segment city state').populate('templateId','name slug category sections');
+  if(!item)throw new AppError('Site publicado não encontrado.',404);
+  res.json(item);
 }
 
 export async function deploySite(req,res){
@@ -38,6 +53,7 @@ export async function deploySite(req,res){
   if(!site.content?.hero)throw new AppError('O site ainda não possui conteúdo suficiente para publicação.',409);
   const deployment=await getDeploymentService().deploy(site);
   site.status='publicado'; site.deploymentId=deployment.deploymentId; site.previewUrl=deployment.previewUrl; site.productionUrl=deployment.productionUrl||'';
+  site.publication={subdomain:deployment.subdomain,version:deployment.version,publishedAt:deployment.deployedAt};
   await site.save();
   await Company.updateOne({_id:site.companyId._id},{$set:{status:'contato-pendente'}});
   res.json({site,deployment});

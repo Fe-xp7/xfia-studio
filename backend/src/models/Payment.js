@@ -1,0 +1,4 @@
+import mongoose from 'mongoose';
+const paymentSchema=new mongoose.Schema({orderId:{type:mongoose.Schema.Types.ObjectId,ref:'Order',required:true,index:true},billingSubscriptionId:{type:mongoose.Schema.Types.ObjectId,ref:'BillingSubscription',default:null,index:true},provider:{type:String,required:true},providerPaymentId:{type:String,sparse:true},type:{type:String,enum:['initial','recurring'],required:true},billingType:{type:String,default:'UNDEFINED'},status:{type:String,enum:['pending','confirmed','received','overdue','refunded','chargeback','canceled'],default:'pending',index:true},amount:{type:Number,required:true,min:0},dueDate:{type:Date,default:null},confirmedAt:{type:Date,default:null},receivedAt:{type:Date,default:null}},{timestamps:true});
+paymentSchema.index({provider:1,providerPaymentId:1},{unique:true,sparse:true});
+export const Payment=mongoose.model('Payment',paymentSchema);

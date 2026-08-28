@@ -24,6 +24,9 @@ export function errorHandler(error, _req, res, _next) {
   } else if (error.code === 'LIMIT_FILE_COUNT') {
     status = 400;
     message = 'Envie no máximo 10 imagens por vez.';
+  } else if (error.code === 'LIMIT_UNEXPECTED_FILE') {
+    status = 400;
+    message = 'Envie no máximo 5 imagens neste formulário.';
   } else if (error.message === 'Envie somente imagens JPG, PNG ou WebP.') {
     status = 400;
   }

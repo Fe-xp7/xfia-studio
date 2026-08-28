@@ -1,9 +1,6 @@
 import { Company } from '../models/Company.js';
 import { AppError } from '../utils/AppError.js';
-import { Template } from '../models/Template.js';
-import { Site } from '../models/Site.js';
-import { aiService } from '../services/ai/index.js';
-import { slugify } from '../utils/slugify.js';
+import { analyzeCompanyForSite, generateSiteForCompany } from '../services/siteGeneration/SiteGenerationService.js';
 
 const clean = (body) => {
   const allowed = ['name','segment','description','city','state','address','phone','whatsapp','instagram','facebook','googleMaps','businessHours','services','products','photos','logo','notes','hasWebsite','currentUrl','status','potential'];
@@ -52,13 +49,7 @@ export async function analyzeCompany(req, res) {
   company.status = 'analisando';
   await company.save();
   try {
-    const templates = await Template.find({ active:true }).select('name slug category sections defaultTheme');
-    const analysis = await aiService.analyze(company, templates);
-    company.analysis = analysis;
-    company.analyzedAt = new Date();
-    company.potential = analysis.potentialScore;
-    company.status = 'site-em-producao';
-    await company.save();
+    const analysis = await analyzeCompanyForSite(company);
     res.json({ analysis, company });
   } catch (error) {
     company.status = previousStatus;
@@ -67,22 +58,9 @@ export async function analyzeCompany(req, res) {
   }
 }
 
-async function uniqueSlug(company) {
-  const base=slugify(company.name)||`site-${company.id}`;
-  const existing=await Site.findOne({ slug:base, companyId:{ $ne:company._id } });
-  return existing ? `${base}-${company.id.toString().slice(-6)}` : base;
-}
-
 export async function generateCompanySite(req, res) {
   const company=await Company.findById(req.params.id);
   if(!company) throw new AppError('Empresa não encontrada.',404);
-  if(!company.analysis) throw new AppError('Analise a empresa antes de gerar o site.',409);
-  const template=await Template.findOne({slug:company.analysis.recommendedTemplate,active:true}) || await Template.findOne({active:true}).sort({createdAt:1});
-  if(!template) throw new AppError('Cadastre ao menos um template ativo antes de gerar o site.',409);
-  const generated=await aiService.generateContent(company,company.analysis);
-  const slug=await uniqueSlug(company);
-  const site=await Site.findOneAndUpdate({companyId:company._id,status:{$ne:'arquivado'}},{companyId:company._id,templateId:template._id,name:`Site ${company.name}`,slug,content:generated,theme:{...template.defaultTheme?.toObject?.(),mode:'light',colors:company.analysis.recommendedColors,style:company.analysis.recommendedStyle},seo:generated.seo,status:'rascunho'},{new:true,upsert:true,runValidators:true,setDefaultsOnInsert:true});
-  company.status='site-pronto';
-  await company.save();
+  const site=await generateSiteForCompany(company);
   res.status(201).json({site,company});
 }

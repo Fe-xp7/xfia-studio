@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "xfia-sites",
+  "main": "worker.js",
+  "compatibility_date": "2025-08-23",
+  "routes": [
+    { "pattern": "*.sites.xfiatech.com/*", "zone_name": "xfiatech.com" }
+  ],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true
+  }
+}
