@@ -40,6 +40,8 @@ services:
         value: multitenant
       - key: PUBLIC_SITE_URL
         sync: false
+      - key: PUBLIC_SITE_MODE
+        value: path
       - key: PUBLIC_SITE_BASE_DOMAIN
         value: sites.xfiatech.com
       - key: PUBLIC_SITE_SCHEME

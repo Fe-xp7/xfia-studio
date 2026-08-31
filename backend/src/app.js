@@ -15,7 +15,7 @@ app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({origin(origin,callback){
   if(!origin)return callback(null,true);
   const normalized=origin.replace(/\/$/,'');
-  if(env.clientUrls.includes(normalized))return callback(null,true);
+  if(env.clientUrls.includes(normalized)||normalized===env.publicSiteUrl)return callback(null,true);
   try{
     const url=new URL(normalized),base=env.publicSiteBaseDomain.split(':')[0];
     const isTenant=url.hostname.endsWith(`.${base}`)&&url.hostname.slice(0,-base.length-1).length>0;

@@ -47,6 +47,15 @@ export async function resolvePublicSite(req,res){
   res.json(item);
 }
 
+export async function getPublishedSiteBySlug(req,res){
+  res.set('Cache-Control','no-store');
+  const slug=String(req.params.slug||'').trim().toLowerCase();
+  if(!/^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$/.test(slug))throw new AppError('Endereço de site inválido.',400);
+  const item=await Site.findOne({'publication.subdomain':slug,status:{$in:['publicado','suspenso']}}).populate('companyId','name segment city state').populate('templateId','name slug category sections');
+  if(!item)throw new AppError('Site publicado não encontrado.',404);
+  res.json(item);
+}
+
 export async function deploySite(req,res){
   const site=await Site.findById(req.params.id).populate('companyId').populate('templateId');
   if(!site)throw new AppError('Site não encontrado.',404);

@@ -25,6 +25,7 @@ export default function App() {
   return <BrowserRouter><AuthProvider><SettingsProvider><Routes>
     <Route path="/login" element={<LoginPage/>}/>
     <Route path="/preview/:slug" element={<PublicPreviewPage/>}/>
+    <Route path="/site/:slug" element={<PublicPreviewPage published/>}/>
     <Route path="/criar-site" element={<PublicSiteGeneratorPage/>}/>
     <Route element={<ProtectedRoute/>}><Route element={<AdminLayout/>}>
       <Route index element={<DashboardPage/>}/>

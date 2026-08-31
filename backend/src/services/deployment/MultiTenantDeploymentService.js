@@ -13,11 +13,12 @@ export function normalizeSubdomain(value) {
 }
 
 export class MultiTenantDeploymentService extends DeploymentService {
-  constructor({ publicSiteUrl, baseDomain, scheme }) {
+  constructor({ publicSiteUrl, baseDomain, scheme, mode = 'subdomain' }) {
     super();
     this.publicSiteUrl = publicSiteUrl.replace(/\/$/, '');
     this.baseDomain = baseDomain.replace(/^https?:\/\//, '').replace(/\/$/, '');
     this.scheme = scheme;
+    this.mode = mode;
   }
 
   async deploy(site) {
@@ -27,7 +28,7 @@ export class MultiTenantDeploymentService extends DeploymentService {
     return {
       deploymentId: `tenant_${crypto.randomUUID()}`,
       previewUrl: `${this.publicSiteUrl}/preview/${site.slug}`,
-      productionUrl: `${this.scheme}://${subdomain}.${this.baseDomain}`,
+      productionUrl: this.mode === 'path' ? `${this.publicSiteUrl}/site/${subdomain}` : `${this.scheme}://${subdomain}.${this.baseDomain}`,
       provider: 'cloudflare-worker', subdomain, version, deployedAt: new Date(),
     };
   }

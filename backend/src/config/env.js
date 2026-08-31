@@ -20,6 +20,7 @@ export const env = {
   aiModel: process.env.AI_MODEL || '',
   deploymentProvider: process.env.DEPLOYMENT_PROVIDER || 'local',
   publicSiteUrl: process.env.PUBLIC_SITE_URL || 'http://localhost:5173',
+  publicSiteMode: process.env.PUBLIC_SITE_MODE || 'subdomain',
   publicSiteBaseDomain: (process.env.PUBLIC_SITE_BASE_DOMAIN || 'localhost:5173').toLowerCase(),
   publicSiteScheme: process.env.PUBLIC_SITE_SCHEME || (process.env.NODE_ENV === 'production' ? 'https' : 'http'),
   defaultCreationFee: Number(process.env.DEFAULT_CREATION_FEE) || 500,

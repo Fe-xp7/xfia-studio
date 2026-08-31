@@ -3,9 +3,7 @@
   "name": "xfia-sites",
   "main": "worker.js",
   "compatibility_date": "2025-08-23",
-  "routes": [
-    { "pattern": "*.sites.xfiatech.com/*", "zone_name": "xfiatech.com" }
-  ],
+  "workers_dev": true,
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
