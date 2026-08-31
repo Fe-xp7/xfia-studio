@@ -5,6 +5,7 @@ import { Client } from '../models/Client.js';
 import { Subscription } from '../models/Subscription.js';
 
 export async function getDashboard(_req, res) {
+  res.set('Cache-Control','private, no-store');
   await Subscription.updateMany({status:'pendente',dueDate:{$lt:new Date(new Date().setHours(0,0,0,0))}},{$set:{status:'atrasado'}});
   const [companies, highPotential, preparingSites, publishedSites, templates, recommendations, activeClients, finance, pendingSubscriptions] = await Promise.all([
     Company.countDocuments(), Company.countDocuments({ potential: { $gte: 80 } }),

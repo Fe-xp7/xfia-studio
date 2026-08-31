@@ -4,10 +4,12 @@ import { env, validateEnv } from './config/env.js';
 import { ensureDefaultTemplates } from './services/templateSeeder.js';
 import { recoverGenerationJobs } from './services/generationJobs.js';
 import { recoverBillingJobs, runBillingLifecycle } from './services/billing/billingJobs.js';
+import { ensureInitialAdmin } from './services/ensureInitialAdmin.js';
 
 async function start() {
   validateEnv();
   await connectDatabase();
+  await ensureInitialAdmin();
   await ensureDefaultTemplates();
   await recoverGenerationJobs();
   await recoverBillingJobs();

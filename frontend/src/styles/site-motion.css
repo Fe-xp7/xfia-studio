@@ -1,0 +1,15 @@
+/* Barbearia: movimento de precisão, exclusivo desta receita. */
+.availability-ticker{height:31px;overflow:hidden;display:flex;align-items:center;position:relative;z-index:4}
+.availability-ticker>div{display:flex;width:max-content;will-change:transform}
+.availability-ticker>div>span{display:flex;align-items:center;flex:none}
+.availability-ticker>div>span>span{display:flex;align-items:center;gap:10px;padding:0 30px;font-size:9px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;white-space:nowrap}
+.ticker--precision{background:#0d292f;color:#d8e4e4;border-bottom:1px solid #c2a15f40}
+.ticker--precision>div{animation:barberTicker 34s linear infinite}
+.ticker--precision i{width:4px;height:4px;border-radius:50%;background:#c2a15f;opacity:.78}
+.precision-scan{position:absolute;z-index:3;inset:-10% auto -10% -12%;width:1px;background:linear-gradient(180deg,transparent,#c2a15f42 18%,#c2a15f 50%,#c2a15f42 82%,transparent);box-shadow:0 0 9px #c2a15f2e;animation:barberScan 8s cubic-bezier(.45,0,.55,1) infinite;pointer-events:none}
+.identity--barbearia .services--staggered .service-grid article>span{opacity:0;animation:barberMarkerIn .55s ease-out forwards;animation-delay:calc(.14s * var(--service-index))}
+.generated-site--editor .ticker--precision>div,.generated-site--editor .precision-scan,.generated-site--editor .services--staggered .service-grid article>span{animation:none;opacity:1}
+@keyframes barberTicker{to{transform:translateX(-50%)}}
+@keyframes barberScan{0%{left:-12%;opacity:0}10%,88%{opacity:.72}100%{left:112%;opacity:0}}
+@keyframes barberMarkerIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.generated-site *{animation:none!important}.identity--barbearia .services--staggered .service-grid article>span{opacity:1;transform:none}.ticker--precision>div{transform:none}.availability-ticker>div>span[aria-hidden="true"]{display:none}.precision-scan{display:none}}
